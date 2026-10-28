@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Juniper Ashworth — Internet Alchemist</title>
+<meta name="description" content="Crafting tactile, fast interfaces that hide a quiet secret beneath each pixel.">
+<meta name="theme-color" content="#f6f5f9">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ease: cubic-bezier(.22, 1, .36, 1);
+    --pad: clamp(16px, 1.6vw, 28px);
+    --small: clamp(11px, .78vw, 13px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: #f6f5f9;
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  /* ---------- Hero shell: two identical layers, one per theme ---------- */
+  .hero {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+  }
+  .layer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .layer.is-overlay { pointer-events: none; z-index: 2; }
+  .layer.is-base { z-index: 1; clip-path: none; }
+
+  .layer[data-theme="light"] {
+    --bg: #f6f5f9;
+    --ink: #140e29;
+    --muted: #a39fb4;
+    --chip-bg: #140e29;
+    --chip-ink: #f6f5f9;
+  }
+  .layer[data-theme="dark"] {
+    --bg: #1a0e3f;
+    --ink: #f6f1ff;
+    --muted: rgba(232, 222, 255, .55);
+    --chip-bg: rgba(246, 241, 255, .14);
+    --chip-ink: #f6f1ff;
+  }
+
+  /* ---------- Backgrounds ---------- */
+  .bg { position: absolute; inset: 0; pointer-events: none; }
+  .layer[data-theme="dark"] .bg {
+    background:
+      radial-gradient(120% 90% at 70% 40%, rgba(140, 92, 255, .18), transparent 60%),
+      linear-gradient(180deg, rgba(26, 14, 63, .1), rgba(18, 8, 44, .45)),
+      url("https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261028_034455_4f4314d2-7d39-4a7b-bf3e-5bc2dfd744d8.png") center / cover no-repeat,
+      #1a0e3f;
+    animation: drift 38s ease-in-out infinite alternate;
+    transform-origin: 60% 40%;
+  }
+  .layer[data-theme="dark"] .bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: .16;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  .layer[data-theme="dark"] .bg.has-gl { animation: none; transform: none; background: #1a0e3f; }
+  .smoke { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .bg::after { z-index: 1; }
+  @keyframes drift {
+    0%   { transform: scale(1.08) translate3d(0, 0, 0) rotate(0deg); }
+    100% { transform: scale(1.18) translate3d(-2%, 1.5%, 0) rotate(1.5deg); }
+  }
+
+  /* ---------- Top bar ---------- */
+  .top {
+    position: absolute;
+    top: var(--pad); left: var(--pad); right: var(--pad);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--small);
+    font-weight: 500;
+    z-index: 5;
+  }
+  .nav { display: flex; align-items: center; gap: 12px; }
+  .nav a { color: inherit; text-decoration: none; }
+  .nav a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .toggle {
+    width: 22px; height: 22px;
+    display: grid; place-items: center;
+    border: 0; background: none; color: inherit;
+    cursor: pointer; border-radius: 50%;
+  }
+  .toggle svg { width: 16px; height: 16px; transition: transform .8s var(--ease); }
+  .layer[data-theme="dark"] .toggle svg { transform: rotate(180deg); }
+  :focus-visible { outline: 2px solid #8c5cff; outline-offset: 3px; border-radius: 3px; }
+
+  /* ---------- Intro ---------- */
+  .intro {
+    position: absolute;
+    top: calc(var(--pad) + 1.9em);
+    left: var(--pad);
+    z-index: 4;
+    font-size: var(--small);
+  }
+  .title {
+    font-family: "Archivo", sans-serif;
+    font-weight: 900;
+    font-size: clamp(46px, 5.9vw, 112px);
+    line-height: .86;
+    letter-spacing: -.035em;
+    text-transform: uppercase;
+    user-select: none;
+  }
+  .title .line { display: block; white-space: nowrap; }
+  .title .ch { display: inline-block; position: relative; }
+  .lede {
+    margin-top: 1.4em;
+    max-width: 23em;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
+  /* Chromatic split on the dark headline (hover + theme switch) */
+  .layer[data-theme="dark"] .ch.hit { animation: rgb-split .7s var(--ease); }
+  .title.glitch .ch { animation: rgb-split .9s steps(6) both; animation-delay: calc(var(--i) * 18ms); }
+  @keyframes rgb-split {
+    0%   { text-shadow: .09em 0 0 #ff2e88, -.09em 0 0 #2ee6ff, 0 .05em 0 #c8ff2e; transform: translate(0, -.04em) skewX(-8deg); }
+    35%  { text-shadow: -.06em 0 0 #ff2e88, .07em 0 0 #2ee6ff, 0 -.04em 0 #c8ff2e; transform: translate(.02em, .02em) skewX(6deg); }
+    70%  { text-shadow: .03em 0 0 #ff2e88, -.03em 0 0 #2ee6ff; transform: none; }
+    100% { text-shadow: none; transform: none; }
+  }
+
+  /* ---------- Vertical marquee ---------- */
+  .reel {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 51%;
+    width: 32vw;
+    perspective: 1100px;
+    perspective-origin: 50% 50%;
+    touch-action: none;
+    cursor: grab;
+    z-index: 2;
+  }
+  .reel:active { cursor: grabbing; }
+  .item {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+  }
+  .item figure {
+    position: relative;
+    isolation: isolate;
+    width: 100%; height: 100%;
+    overflow: hidden;
+  }
+  .item img {
+    display: block;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  /* Light: ink-violet duotone */
+  .layer[data-theme="light"] .item img { filter: grayscale(1) contrast(1.35) brightness(1.04); }
+  .layer[data-theme="light"] .item figure::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: #1d1446;
+    mix-blend-mode: lighten;
+  }
+  /* Dark: full colour, soft glow */
+  .layer[data-theme="dark"] .item figure {
+    box-shadow: 0 30px 80px -20px rgba(8, 2, 30, .7);
+  }
+  .layer[data-theme="dark"] .item img { filter: saturate(1.12) contrast(1.04); }
+
+  /* Dark: violet haze the drum sinks into */
+  .fog { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  .layer[data-theme="dark"] .fog {
+    background:
+      radial-gradient(70% 38% at 62% 100%, rgba(176, 132, 255, .55), transparent 70%),
+      linear-gradient(to top, rgba(54, 26, 120, .75), transparent 34%),
+      linear-gradient(to bottom, rgba(26, 14, 63, .55), transparent 18%);
+  }
+
+  /* ---------- Project index ---------- */
+  .index {
+    position: absolute;
+    right: var(--pad);
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: right;
+    font-size: var(--small);
+    font-weight: 500;
+    z-index: 4;
+  }
+  .label { color: var(--muted); display: block; margin-bottom: .45em; }
+  .list { list-style: none; line-height: 1.45; }
+  .list button {
+    font: inherit;
+    color: var(--muted);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: color .4s var(--ease);
+  }
+  .list li.active button, .list button:hover { color: var(--ink); }
+  .chip {
+    display: inline-flex;
+    gap: .5em;
+    align-items: center;
+    margin-top: 1.6em;
+    padding: .7em 1.1em;
+    background: var(--chip-bg);
+    color: var(--chip-ink);
+    font-variant-numeric: tabular-nums;
+    backdrop-filter: blur(8px);
+  }
+  .chip .arrow { transition: transform .5s var(--ease); }
+  .chip:hover .arrow { transform: translate(2px, -2px); }
+
+  /* ---------- Footer ---------- */
+  .foot {
+    position: absolute;
+    left: var(--pad); right: var(--pad); bottom: var(--pad);
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    gap: clamp(28px, 5vw, 90px);
+    align-items: end;
+    font-size: var(--small);
+    font-weight: 500;
+    z-index: 4;
+  }
+  .foot a { color: inherit; text-decoration: none; }
+  .foot a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .foot .label { margin-bottom: .15em; }
+  .copy { justify-self: end; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1024px) {
+    .reel { left: 44%; width: 40vw; }
+  }
+  @media (max-width: 720px) {
+    .title { font-size: clamp(40px, 13.4vw, 72px); }
+    .lede { max-width: 19em; margin-top: 1em; }
+    .reel {
+      left: 50%;
+      width: min(82vw, 420px);
+      margin-left: calc(min(82vw, 420px) / -2);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 27%, #000 37%, #000 76%, transparent 86%);
+              mask-image: linear-gradient(to bottom, transparent 27%, #000 37%, #000 76%, transparent 86%);
+    }
+    .index {
+      top: auto;
+      transform: none;
+      bottom: calc(var(--pad) + 52px);
+      left: var(--pad);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      text-align: left;
+    }
+    .index .label { margin-bottom: .2em; }
+    .list li:not(.active) { display: none; }
+    .chip { margin-top: 0; }
+    .foot { grid-template-columns: auto auto 1fr; gap: 24px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layer[data-theme="dark"] .bg { animation: none; transform: scale(1.08); }
+    .title.glitch .ch, .layer[data-theme="dark"] .ch.hit { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<main class="hero" id="hero" aria-label="Juniper Ashworth, internet alchemist">
+  <section class="layer is-base" data-theme="light"></section>
+  <section class="layer is-overlay" data-theme="dark" aria-hidden="true"></section>
+</main>
+
+<template id="layer-tpl">
+  <div class="bg"></div>
+  <header class="top">
+    <span class="name">Juniper Ashworth</span>
+    <nav class="nav" aria-label="Primary">
+      <span><a href="#works">Index</a>, <a href="#studio">Studio</a></span>
+      <button class="toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 1a7 7 0 0 1 0 14z" fill="currentColor"/></svg>
+      </button>
+    </nav>
+  </header>
+  <div class="intro">
+    <h1 class="title"><span class="line">Internet</span><span class="line">Alchemist</span></h1>
+    <p class="lede">Crafting tactile, fast interfaces that hide a quiet secret beneath each pixel.</p>
+  </div>
+  <div class="reel"></div>
+  <div class="fog" aria-hidden="true"></div>
+  <aside class="index" id="works">
+    <div>
+      <span class="label">Works</span>
+      <ol class="list"></ol>
+    </div>
+    <a class="chip" href="#works" aria-label="Open current project"><span class="count">01 / 05</span><span class="arrow">↗</span></a>
+  </aside>
+  <footer class="foot" id="studio">
+    <div><span class="label">Contact</span><a href="mailto:hello@juniper.studio">hello@juniper.studio</a></div>
+    <div><span class="label">Open from</span><span>January 2027</span></div>
+    <div class="copy">© 2026</div>
+  </footer>
+</template>
+
+<script>
+(() => {
+  const CDN = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/";
+  const PROJECTS = [
+    { name: "Lumen Ceramics",  alt: "Two potters in aprons standing in a sunlit studio courtyard", src: CDN + "hf_20261028_034456_35d32801-80f8-4feb-b277-d6271c907985.png" },
+    { name: "Cobalt Cyclists", alt: "Three cyclists in matching orange jerseys against a mint wall", src: CDN + "hf_20261028_034456_08dc08bf-2e30-4e36-a089-c51670f3503f.png" },
+    { name: "Orbo",            alt: "A designer sketching on a tablet beside a laptop and plants",  src: CDN + "hf_20261028_034456_cfb47d01-7bdd-4ba1-8af1-b63f0245f0dd.png" },
+    { name: "CrumbHouse",      alt: "Overhead spread of pastries and coffee on marble",            src: CDN + "hf_20261028_034455_3ca38e55-9cb1-4e96-8dc9-4141b52d090b.png" },
+    { name: "Sierra Retreat",  alt: "A lone figure among saguaro cacti in a desert garden",        src: CDN + "hf_20261028_034455_dd775f8a-e67a-48ca-b0ed-8cfb8a0d5564.png" },
+  ];
+  const PROJECTS_BG = CDN + "hf_20261028_034455_4f4314d2-7d39-4a7b-bf3e-5bc2dfd744d8.png";
+  const N = PROJECTS.length;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const hero = document.getElementById("hero");
+  const layers = {
+    light: hero.querySelector('[data-theme="light"]'),
+    dark:  hero.querySelector('[data-theme="dark"]'),
+  };
+  const tpl = document.getElementById("layer-tpl");
+
+  /* ---------- Build both layers from one template ---------- */
+  const reels = [];
+  for (const theme of ["light", "dark"]) {
+    const layer = layers[theme];
+    layer.appendChild(tpl.content.cloneNode(true));
+
+    let i = 0;
+    layer.querySelectorAll(".title .line").forEach(line => {
+      line.innerHTML = [...line.textContent].map(c => `<span class="ch" data-i="${i}" style="--i:${i++}">${c}</span>`).join("");
+    });
+
+    layer.querySelector(".list").innerHTML = PROJECTS
+      .map((p, k) => `<li data-k="${k}"><button type="button">${p.name}</button></li>`).join("");
+
+    reels.push(layer.querySelector(".reel"));
+  }
+
+  /* ---------- Marquee state (shared so both layers line up) ---------- */
+  const S = {
+    offset: 0, target: 0, prev: 0, vel: 0,
+    curve: 0,           // 0 = flat (light), 1 = drum (dark)
+    paused: false,
+    w: 0, h: 0, itemH: 0, step: 0, count: 0, total: 0,
+  };
+  let items = [];       // [{ light, dark }]
+
+  function layout() {
+    const r = reels[0].getBoundingClientRect();
+    S.w = r.width;
+    S.h = hero.clientHeight;
+    S.itemH = S.w / 1.5;
+    S.step = S.itemH + Math.max(14, S.itemH * 0.12);
+    const need = Math.ceil((S.h + S.step * 3) / (S.step * N));
+    const count = N * Math.max(1, need);
+    if (count !== S.count) {
+      S.count = count;
+      const html = Array.from({ length: count }, (_, k) => {
+        const p = PROJECTS[k % N];
+        return `<div class="item" data-k="${k % N}"><figure><img src="${p.src}" alt="${k < N ? p.alt : ""}" ${k < N ? "" : 'aria-hidden="true"'} loading="eager" decoding="async"></figure></div>`;
+      }).join("");
+      reels.forEach(rl => (rl.innerHTML = html));
+      items = Array.from({ length: count }, (_, k) => ({
+        light: reels[0].children[k],
+        dark: reels[1].children[k],
+      }));
+    }
+    S.total = S.count * S.step;
+  }
+
+  const mod = (a, n) => ((a % n) + n) % n;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+  function renderReel() {
+    const t = S.curve;
+    const v = clamp(S.vel, -60, 60);
+    let best = 0, bestD = Infinity;
+
+    const speed = Math.abs(v);
+    const R = S.h * 0.62;                                  // drum radius (dark)
+    const top = S.h / 2 - S.itemH / 2;
+
+    for (let k = 0; k < items.length; k++) {
+      const y = mod(k * S.step + S.offset, S.total) - S.step * 1.5;
+      const s = y - top;                                    // distance from centre slot
+      const c = clamp(s / (S.h * 0.5), -1.6, 1.6);          // -1 top … 1 bottom
+      const d = Math.abs(s);
+      if (d < bestD) { bestD = d; best = k % N; }
+
+      // Light: flat column, still at rest. While scrolling, the centre card
+      // stays put and the column flares out towards the edges: cards above
+      // centre widen at their top edge, cards below widen at their bottom edge.
+      const amt = Math.min(speed * 0.03, 1);
+      const cc = clamp(c, -1.3, 1.3);
+      const lRotX = cc * amt * 24;
+      const lScaleX = 1 + amt * 0.22 * cc * cc;
+      const lScaleY = 1 + amt * 0.05 * Math.abs(cc);
+
+      // Dark: cards sit on a slowly turning drum, tilted away from the viewer,
+      // shrinking towards the top and sinking into the haze at the bottom.
+      const th = clamp(s / R, -1.7, 1.7);
+      const dY = top + Math.sin(th) * R;
+      const dZ = (Math.cos(th) - 1) * R - 60;
+      const dRotX = -th * 57.3 * 0.85;
+      const dX = -Math.sin(th) * S.w * 0.06;
+      const fade = 1 - clamp((Math.abs(th) - 0.75) / 0.6, 0, 1);
+
+      const ty = lerp(y, dY, t);
+      const rx = lerp(lRotX, dRotX, t);
+      const ry = lerp(0, -12, t);
+      const rz = lerp(0, -2.5, t);
+      const tz = lerp(0, dZ, t);
+      const tx = lerp(0, dX, t);
+      const sx = lerp(lScaleX, 0.9, t);
+      const sy = lerp(lScaleY, 0.9, t);
+      const op = lerp(1, fade, t);
+
+      const tf = `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, ${tz.toFixed(1)}px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) rotateZ(${rz.toFixed(2)}deg) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
+      const it = items[k];
+      it.light.style.transform = tf;
+      it.dark.style.transform = tf;
+      it.light.style.opacity = op;
+      it.dark.style.opacity = op;
+    }
+    setActive(best);
+  }
+
+  let active = -1;
+  function setActive(k) {
+    if (k === active) return;
+    active = k;
+    for (const theme of ["light", "dark"]) {
+      const layer = layers[theme];
+      layer.querySelectorAll(".list li").forEach(li => li.classList.toggle("active", +li.dataset.k === k));
+      layer.querySelector(".count").textContent = `${String(k + 1).padStart(2, "0")} / ${String(N).padStart(2, "0")}`;
+    }
+  }
+
+  function scrollToProject(k) {
+    const desired = S.h / 2 - S.itemH / 2 + S.step * 1.5 - k * S.step;
+    const n = Math.round((S.target - desired) / S.total);
+    S.target = desired + n * S.total;
+  }
+
+  /* ---------- Theme + reveal ---------- */
+  let base = "light";
+  const other = () => (base === "light" ? "dark" : "light");
+  const trail = [];
+  let wipe = null;      // { start, cx, cy, max, to }
+  const WIPE_MS = reduced ? 350 : 1250;
+  const TRAIL_MS = 950;
+
+  function applyRoles() {
+    const b = layers[base], o = layers[other()];
+    b.classList.add("is-base"); b.classList.remove("is-overlay");
+    o.classList.add("is-overlay"); o.classList.remove("is-base");
+    b.removeAttribute("aria-hidden"); o.setAttribute("aria-hidden", "true");
+    b.style.clipPath = "none";
+    o.style.clipPath = "path('M0 0Z')";
+    document.querySelector('meta[name="theme-color"]').content = base === "light" ? "#f6f5f9" : "#1a0e3f";
+    document.body.style.background = base === "light" ? "#f6f5f9" : "#1a0e3f";
+    const dark = base === "dark";
+    hero.querySelectorAll(".toggle").forEach(btn => {
+      btn.setAttribute("aria-pressed", String(dark));
+      btn.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+    });
+  }
+
+  function toggleTheme(e) {
+    if (wipe) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const h = hero.getBoundingClientRect();
+    const cx = r.left + r.width / 2 - h.left;
+    const cy = r.top + r.height / 2 - h.top;
+    wipe = {
+      start: performance.now(), cx, cy, to: other(),
+      max: Math.hypot(Math.max(cx, h.width - cx), Math.max(cy, h.height - cy)) * 1.25,
+    };
+    if (wipe.to === "dark") snapSoon(0);
+    hero.querySelectorAll(".title").forEach(t => {
+      t.classList.remove("glitch"); void t.offsetWidth; t.classList.add("glitch");
+      setTimeout(() => t.classList.remove("glitch"), 1200);
+    });
+  }
+
+  // Pointer trail -> liquid blob made of overlapping circles (union via nonzero fill)
+  let last = null;
+  function addTrail(x, y, now) {
+    if (!last) { last = { x, y, t: now }; }
+    const dx = x - last.x, dy = y - last.y;
+    const dist = Math.hypot(dx, dy);
+    const dt = Math.max(8, now - last.t);
+    const speed = dist / dt;                    // px per ms
+    const r0 = clamp(20 + speed * 24, 20, 60);
+    const steps = Math.max(1, Math.ceil(dist / 3));
+    for (let s = 1; s <= steps; s++) {
+      trail.push({ x: last.x + dx * s / steps, y: last.y + dy * s / steps, r: r0, born: now, seed: Math.random() * 6.28 });
+    }
+    if (trail.length > 420) trail.splice(0, trail.length - 420);
+    last = { x, y, t: now };
+  }
+
+  const circle = (x, y, r) =>
+    `M${(x - r).toFixed(1)} ${y.toFixed(1)}a${r.toFixed(1)} ${r.toFixed(1)} 0 1 1 ${(2 * r).toFixed(1)} 0a${r.toFixed(1)} ${r.toFixed(1)} 0 1 1 ${(-2 * r).toFixed(1)} 0Z`;
+
+  function wobble(cx, cy, r, time) {
+    let d = "";
+    const seg = 96;
+    for (let k = 0; k <= seg; k++) {
+      const a = (k / seg) * Math.PI * 2;
+      const w = reduced ? 1 : 1 + 0.07 * Math.sin(a * 3 + time * 2.2) + 0.045 * Math.sin(a * 7 - time * 3.1) + 0.03 * Math.sin(a * 13 + time * 4);
+      d += `${k ? "L" : "M"}${(cx + Math.cos(a) * r * w).toFixed(1)} ${(cy + Math.sin(a) * r * w).toFixed(1)}`;
+    }
+    return d + "Z";
+  }
+
+  let lastClip = "";
+  function renderClip(now) {
+    let d = "";
+    for (let k = trail.length - 1; k >= 0; k--) {
+      const p = trail[k];
+      const life = 1 - (now - p.born) / TRAIL_MS;
+      if (life <= 0) { trail.splice(0, k + 1); break; }
+      const grow = Math.min(1, (now - p.born) / 90);
+      const r = p.r * Math.pow(life, 0.65) * (0.55 + 0.45 * grow) * (1 + 0.12 * Math.sin(p.seed + now * 0.006));
+      if (r > 1) d += circle(p.x, p.y, r);
+    }
+
+    if (wipe) {
+      const p = clamp((now - wipe.start) / WIPE_MS, 0, 1);
+      const e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+      S.curve = wipe.to === "dark" ? e : 1 - e;
+      d += wobble(wipe.cx, wipe.cy, e * wipe.max, now / 1000);
+      if (p >= 1) {
+        base = wipe.to;
+        wipe = null;
+        trail.length = 0;
+        last = null;
+        d = "";
+        applyRoles();
+        lastClip = "";
+        return;
+      }
+    }
+
+    const clip = d ? `path('${d}')` : "path('M0 0Z')";
+    if (clip !== lastClip) {
+      layers[other()].style.clipPath = clip;
+      lastClip = clip;
+    }
+  }
+
+  /* ---------- Input ---------- */
+  const isDark = () => (wipe ? wipe.to : base) === "dark";
+
+  hero.addEventListener("pointermove", e => {
+    const h = hero.getBoundingClientRect();
+    const x = e.clientX - h.left, y = e.clientY - h.top;
+    // The liquid reveal only exists on the light hero; on the dark hero the cursor stirs the smoke instead
+    if (base === "light") addTrail(x, y, performance.now());
+    if (smoke) smoke.pointer(x, y);
+  });
+  hero.addEventListener("pointerleave", () => { last = null; });
+
+  // Dark mode settles on the nearest card once input stops
+  let snapTimer = 0;
+  function snapSoon(delay = 140) {
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(() => {
+      if (!isDark() || drag) return;
+      const base0 = S.h / 2 - S.itemH / 2 + S.step * 1.5;
+      S.target = base0 + Math.round((S.target - base0) / S.step) * S.step;
+    }, delay);
+  }
+
+  addEventListener("wheel", e => {
+    e.preventDefault();
+    const dy = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
+    S.target -= clamp(dy, -160, 160) * (isDark() ? 0.6 : 1);
+    snapSoon();
+  }, { passive: false });
+
+  // Drag (touch + mouse) on the reel
+  let drag = null;
+  reels.forEach(rl => {
+    rl.addEventListener("pointerdown", e => {
+      drag = { y: e.clientY, v: 0, id: e.pointerId };
+      rl.setPointerCapture(e.pointerId);
+    });
+    rl.addEventListener("pointermove", e => {
+      if (!drag || drag.id !== e.pointerId) return;
+      const dy = e.clientY - drag.y;
+      drag.y = e.clientY;
+      drag.v = dy;
+      S.target += dy * (isDark() ? 1.1 : 1.4);
+    });
+    const end = () => {
+      if (!drag) return;
+      S.target += drag.v * (isDark() ? 9 : 14);
+      drag = null;
+      snapSoon(0);
+    };
+    rl.addEventListener("pointerup", end);
+    rl.addEventListener("pointercancel", end);
+  });
+
+  addEventListener("keydown", e => {
+    if (e.key === "ArrowDown") { S.target -= S.step; snapSoon(); }
+    if (e.key === "ArrowUp") { S.target += S.step; snapSoon(); }
+  });
+
+  for (const theme of ["light", "dark"]) {
+    const layer = layers[theme];
+    layer.querySelector(".toggle").addEventListener("click", toggleTheme);
+    const list = layer.querySelector(".list");
+    list.addEventListener("mouseover", e => {
+      const li = e.target.closest("li");
+      if (li) { S.paused = true; scrollToProject(+li.dataset.k); }
+    });
+    list.addEventListener("mouseleave", () => { S.paused = false; });
+    list.addEventListener("click", e => {
+      const li = e.target.closest("li");
+      if (li) scrollToProject(+li.dataset.k);
+    });
+    // Mirror headline hover onto both layers so the revealed copy reacts too
+    layer.querySelector(".title").addEventListener("mouseover", e => {
+      const ch = e.target.closest(".ch");
+      if (!ch) return;
+      hero.querySelectorAll(`.ch[data-i="${ch.dataset.i}"]`).forEach(c => {
+        c.classList.remove("hit"); void c.offsetWidth; c.classList.add("hit");
+        clearTimeout(c._t); c._t = setTimeout(() => c.classList.remove("hit"), 750);
+      });
+    });
+  }
+
+  addEventListener("resize", () => { layout(); renderReel(); if (smoke) smoke.resize(); });
+
+  /* ---------- Interactive smoke (dark hero) ----------
+     The generated smoke image is drawn through WebGL: slow domain-warped
+     noise keeps the mist breathing, and a decaying velocity field fed by the
+     cursor pushes and swirls it like the original's fluid background. */
+  function createSmoke(bg, src) {
+    const canvas = document.createElement("canvas");
+    canvas.className = "smoke";
+    const gl = canvas.getContext("webgl", { alpha: false, antialias: false, premultipliedAlpha: false });
+    if (!gl) return null;
+    bg.appendChild(canvas);
+    bg.classList.add("has-gl");
+
+    const VERT = `attribute vec2 p; varying vec2 uv; void main(){ uv = p * .5 + .5; gl_Position = vec4(p, 0., 1.); }`;
+
+    // Velocity (rg, 0.5 = still) + density (b). Self-advected and fading.
+    const TRAIL = `precision highp float; varying vec2 uv;
+      uniform sampler2D prev; uniform vec2 mouse, vel; uniform float aspect, active;
+      vec2 dz(vec2 v){ return sign(v) * max(abs(v) - .006, 0.); }
+      void main(){
+        vec2 v0 = dz(texture2D(prev, uv).xy * 2. - 1.);
+        vec4 a = texture2D(prev, uv - v0 * .010);
+        vec2 v = dz(a.xy * 2. - 1.) * .972;
+        float dn = max(a.z * .968 - .002, 0.);
+        vec2 d = uv - mouse; d.x *= aspect;
+        float g = exp(-dot(d, d) / .0028) * active;
+        v += vel * g;
+        dn += g * min(1., length(vel) * 6.) * .5;
+        gl_FragColor = vec4(clamp(v * .5 + .5, 0., 1.), clamp(dn, 0., 1.), 1.);
+      }`;
+
+    const SHOW = `precision highp float; varying vec2 uv;
+      uniform sampler2D img, trail; uniform vec2 res, imgSize; uniform float time;
+      float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+        return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
+      float fbm(vec2 p){ float s = 0., a = .5; for (int i = 0; i < 5; i++){ s += a * n(p); p = p * 2.03 + 7.1; a *= .5; } return s; }
+      vec2 cover(vec2 u){ float ra = res.x / res.y, ia = imgSize.x / imgSize.y;
+        vec2 s = ra > ia ? vec2(1., ia / ra) : vec2(ra / ia, 1.); return (u - .5) * s / 1.08 + .5; }
+      void main(){
+        vec4 t = texture2D(trail, uv);
+        vec2 v = t.xy * 2. - 1.; v = sign(v) * max(abs(v) - .006, 0.);
+        float dn = t.z;
+        vec2 p = uv * vec2(res.x / res.y, 1.) * 2.2;
+        float n1 = fbm(p + vec2(time * .035, time * .02));
+        float n2 = fbm(p * 1.6 + n1 * 1.7 - vec2(time * .045, -time * .01));
+        vec2 warp = vec2(n1 - .5, n2 - .5) * .045;
+        vec2 iuv = cover(uv) + warp - v * .11;
+        float ca = length(v) * .018 + dn * .006;
+        vec3 col = vec3(texture2D(img, iuv + vec2(ca, 0.)).r, texture2D(img, iuv).g, texture2D(img, iuv - vec2(ca, 0.)).b);
+        float mist = fbm(p * .85 + warp * 22. - v * 4. + vec2(-time * .06, time * .025));
+        col += vec3(.52, .38, 1.) * smoothstep(.42, .92, mist) * .24;
+        col += vec3(.72, .56, 1.) * dn * .45;
+        col *= mix(1., .82, smoothstep(.35, 1.1, length(uv - vec2(.62, .45))));
+        gl_FragColor = vec4(col, 1.);
+      }`;
+
+    const compile = (type, srcText) => { const s = gl.createShader(type); gl.shaderSource(s, srcText); gl.compileShader(s); return s; };
+    const program = frag => {
+      const pr = gl.createProgram();
+      gl.attachShader(pr, compile(gl.VERTEX_SHADER, VERT));
+      gl.attachShader(pr, compile(gl.FRAGMENT_SHADER, frag));
+      gl.bindAttribLocation(pr, 0, "p");
+      gl.linkProgram(pr);
+      if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
+      const u = {};
+      const count = gl.getProgramParameter(pr, gl.ACTIVE_UNIFORMS);
+      for (let i = 0; i < count; i++) { const name = gl.getActiveUniform(pr, i).name; u[name] = gl.getUniformLocation(pr, name); }
+      return { pr, u };
+    };
+
+    let trailProg, showProg;
+    try { trailProg = program(TRAIL); showProg = program(SHOW); }
+    catch (err) { canvas.remove(); bg.classList.remove("has-gl"); return null; }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+    const texParams = () => {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    };
+
+    // Smoke image (placeholder violet pixel until it arrives)
+    const imgTex = gl.createTexture();
+    let imgSize = [16, 9];
+    gl.bindTexture(gl.TEXTURE_2D, imgTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([40, 20, 96, 255]));
+    texParams();
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      gl.bindTexture(gl.TEXTURE_2D, imgTex);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      imgSize = [image.naturalWidth, image.naturalHeight];
+    };
+    image.src = src;
+
+    const target = (w, h) => {
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      texParams();
+      const fb = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      gl.clearColor(.5, .5, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      return { tex, fb, w, h };
+    };
+
+    let W = 0, H = 0, A, B;
+    function resize() {
+      const r = hero.getBoundingClientRect();
+      const dpr = Math.min(devicePixelRatio || 1, 1.5);
+      W = Math.max(2, Math.round(r.width * dpr));
+      H = Math.max(2, Math.round(r.height * dpr));
+      canvas.width = W; canvas.height = H;
+      A = target(Math.ceil(W / 4), Math.ceil(H / 4));
+      B = target(Math.ceil(W / 4), Math.ceil(H / 4));
+    }
+    resize();
+
+    const m = { x: .5, y: .5, px: .5, py: .5, moved: false };
+    function pointer(x, y) {
+      const r = hero.getBoundingClientRect();
+      m.x = x / r.width;
+      m.y = 1 - y / r.height;
+      if (!m.moved) { m.px = m.x; m.py = m.y; }
+      m.moved = true;
+    }
+
+    function render(now) {
+      // Splat the cursor's motion into the velocity field
+      let vx = (m.x - m.px) * 9, vy = (m.y - m.py) * 9;
+      const len = Math.hypot(vx, vy);
+      if (len > 1) { vx /= len; vy /= len; }
+      m.px = m.x; m.py = m.y;
+
+      gl.useProgram(trailProg.pr);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, B.fb);
+      gl.viewport(0, 0, B.w, B.h);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, A.tex);
+      gl.uniform1i(trailProg.u.prev, 0);
+      gl.uniform2f(trailProg.u.mouse, m.x, m.y);
+      gl.uniform2f(trailProg.u.vel, vx, vy);
+      gl.uniform1f(trailProg.u.aspect, W / H);
+      gl.uniform1f(trailProg.u.active, m.moved ? 1 : 0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      [A, B] = [B, A];
+
+      gl.useProgram(showProg.pr);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, W, H);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, imgTex);
+      gl.uniform1i(showProg.u.img, 0);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, A.tex);
+      gl.uniform1i(showProg.u.trail, 1);
+      gl.uniform2f(showProg.u.res, W, H);
+      gl.uniform2f(showProg.u.imgSize, imgSize[0], imgSize[1]);
+      gl.uniform1f(showProg.u.time, reduced ? 0 : now / 1000);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+
+    return { pointer, render, resize };
+  }
+
+  const smoke = createSmoke(layers.dark.querySelector(".bg"), PROJECTS_BG);
+
+  /* ---------- Loop ---------- */
+  let prevT = performance.now();
+  function frame(now) {
+    const dt = Math.min(64, now - prevT) / 1000;
+    prevT = now;
+    const dark = isDark();
+
+    // No autoplay: the reel only moves when the visitor scrolls or drags
+    const k = 1 - Math.pow(1 - (dark ? 0.06 : 0.085), dt * 60);
+    S.prev = S.offset;
+    S.offset += (S.target - S.offset) * k;
+    S.vel = lerp(S.vel, (S.offset - S.prev) / Math.max(dt * 60, 0.001), 0.25);
+
+    renderClip(now);
+    renderReel();
+    // Only draw the smoke while some of the dark hero is on screen
+    if (smoke && (base === "dark" || wipe || trail.length)) smoke.render(now);
+    requestAnimationFrame(frame);
+  }
+
+  layout();
+  applyRoles();
+  S.target = S.offset = S.h / 2 - S.itemH / 2 + S.step * 1.5; // first project centred
+  renderReel();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
